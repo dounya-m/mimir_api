@@ -13,6 +13,7 @@ connDB()
 app.use(bodyParser.urlencoded({ extended: false })) 
 app.use(cors())
 app.use(router)
+
 app.use(erroHandler)
 app.listen(PORT, () =>{
     console.log(`I'm Listen on PORT : ${PORT}`.underline.blue);

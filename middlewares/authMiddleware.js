@@ -1,21 +1,26 @@
 const jwt = require('jsonwebtoken')
+const asyncHandler = require('express-async-handler')
+const User = require('../models/user')
 
-const authToken = (req, res, next) => {
-    try{
-        const token = req.headers.authorization.split(' ')[1]
-        const decode = jwt.verify(token, 'RANDOM_TOKEN_SECRET')
-        const userId = decode.userId
-        if(req.body.userId && req.body.userId !== userId){
-            throw 'Invalid User Id'
-        }else{
-            next()
+const authToken = asyncHandler(async (req, res, next) => {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        try {
+            token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = await User.findById(decoded.id).select('-password');
+            next();
+        } catch (error) { 
+            return res.status(401).json({ error: 'Not authorized' });
         }
-    }catch(err){
-        res.status(401).json({
-            error: new Error('Invalid request!')
-            });
-    }
-}
+        }
+    
+        if (!token) {
+        return res.status(401).json({ error: 'Not authorized, no token' });
+        }
+    });
+
 
 module.exports = {
     authToken
