@@ -2,10 +2,10 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 // const firebaseAdmin = require('firebase-admin');
+const validateEmail = require('../middlewares/validateEmail')
 const asyncHandler = require('express-async-handler')
 const multer = require('multer')
 // const upload = require('../middlewares/storageMiddleware');
-// const validateEmail = require('../middlewares/validateEmail')
 
 
 
@@ -23,9 +23,9 @@ exports.allUsers = async (req, res, next) => {
     }
 }
 
-exports.createUser =  asyncHandler(async (req, res) => {
+exports.createUser =  asyncHandler((req, res) => {
     try{
-        upload.single('image')(req, res, async (err) => {
+        upload.single('image') (req, res, async(err)  => {
             if (err instanceof multer.MulterError) {
             res.status(400).json({ message: err.message });
             } else if (err) {
@@ -36,9 +36,13 @@ exports.createUser =  asyncHandler(async (req, res) => {
                 if (!username || !email || !password || !image) {
                     res.status(400).json({ message: 'Missing required fields' });
                 }
-                // else if (!validateEmail(email)) {
-                //     res.status(400).json({ message: 'Invalid email address' });
-                // }
+                const existingUser = await User.findOne({ email: req.body.email });
+                    if (existingUser) {
+                    return res.status(400).json({ message: 'Email already exists' });
+                    }
+                if (!validateEmail(email)) {
+                    return res.status(400).json({ message: 'Invalid email' });
+                }
                 const user = await User.create({
                 username,
                 email,
@@ -47,9 +51,7 @@ exports.createUser =  asyncHandler(async (req, res) => {
                 });
                 const salt = await bcrypt.genSalt(10)
                 user.password = await bcrypt.hash(user.password, salt)
-                await user.save(function(err){
-                    (err)?res.send(err):res.json({message: "monogodb error"})
-                });
+                await user.save();
                 res.status(201).json({
                 success: true,
                 data: user,
@@ -57,7 +59,8 @@ exports.createUser =  asyncHandler(async (req, res) => {
                 });
             
         });
-    }catch(error){
+    }catch(err){
+        console.log(err);
         res.status(400).json({message: "Server error"})
     }
 })
