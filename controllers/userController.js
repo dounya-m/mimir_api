@@ -65,9 +65,34 @@ exports.createUser =  asyncHandler((req, res) => {
     }
 })
 
+exports.loginUser = asyncHandler(async(req, res) => {
+    const {email, password} = req.body
+    const user = await User.findOne({email})
+
+    if(user && (await bcrypt.compare(password, user.password))){
+        res.status(200).json({
+            success: true,
+            data: user,
+            token: gnerateToken(user._id)
+        })
+    }else{
+        res.status(400).json({message: 'Invalid email or password'})
+    }
+})
+
 
 exports.getMe = async(req, res) => {
-    res.json({message: 'User data display'})
+    const {_id, username, email, image} = await User.findById(req.user._id)
+
+    res.status(200).json({
+        success: true,
+        data: {
+            _id,
+            username,
+            email,
+            image
+        }
+    }) 
 }
 
 const gnerateToken = (id) =>{
