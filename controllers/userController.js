@@ -12,12 +12,8 @@ const multer = require('multer')
 //all users
 exports.allUsers = async (req, res, next) => {
     try {
-        const users = await User.find();
-        res.status(200).json({
-            success: true,
-            count: users.length,
-            data: users
-        })
+        const users = await User.find().sort({ createdAt: 'desc' });
+        res.status(200).json(users)
     } catch (error) {
         next(error)
     }
