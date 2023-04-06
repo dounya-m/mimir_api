@@ -1,12 +1,8 @@
 const Book = require('../models/book')
 
 exports.getBooks = async(req, res) => {
-    const books = await Book.find()
-    res.status(200).json({
-        success : true,
-        count : books.length,
-        data : books
-    })
+    const books = await Book.find().sort({ createdAt: 'desc' })
+    res.status(200).json(books)
 }
 
 exports.addBook = async(req, res) =>{
@@ -27,13 +23,27 @@ exports.addBook = async(req, res) =>{
             quantity
         })
         await book.save()
-        res.status(201).json({
-            success: true,
-            data : book
-        })
+        res.status(201).json(book)
 
     }catch(err){
         console.log(err);
         res.status(500).json({message: 'server error'})
     }
 }
+
+exports.getTypes = async(req, res) => {
+    const types = await Book.find().distinct('type')
+    const singleType = Array.from(new Set(types))
+    res.status(200).json(types)
+}
+
+exports.getYears = async (req, res) => {
+    try {
+      const years = await Book.find().distinct('year')
+      const yearMap = years.map(year => year.split(' ', 3)[2])
+      const singleYear = Array.from(new Set(yearMap)).sort()
+      res.status(200).json(singleYear)
+    } catch (err) {
+      res.status(500).json({ message: err.message })
+    }
+  }  

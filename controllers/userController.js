@@ -19,45 +19,24 @@ exports.allUsers = async (req, res, next) => {
     }
 }
 
-exports.createUser =  asyncHandler((req, res) => {
+exports.createUser =  asyncHandler( async(req, res) => {
     try{
-        upload.single('image') (req, res, async(err)  => {
-            if (err instanceof multer.MulterError) {
-            res.status(400).json({ message: err.message });
-            } else if (err) {
-            res.status(500).json({ message: err.message });
-            } 
-                const { username, email, password } = req.body;
-                const image = req.file.path;            
-                if (!username || !email || !password || !image) {
-                    res.status(400).json({ message: 'Missing required fields' });
-                }
-                const existingUser = await User.findOne({ email: req.body.email });
-                    if (existingUser) {
-                    return res.status(400).json({ message: 'Email already exists' });
-                    }
-                if (!validateEmail(email)) {
-                    return res.status(400).json({ message: 'Invalid email' });
-                }
-                const user = await User.create({
-                username,
-                email,
-                image,
-                password,
-                });
-                const salt = await bcrypt.genSalt(10)
-                user.password = await bcrypt.hash(user.password, salt)
-                await user.save();
-                res.status(201).json({
-                success: true,
-                data: user,
-                token: gnerateToken(user._id)
-                });
-            
-        });
+        const {name, lastname, email, password} = req.body
+        const user = await User.create({
+            name,
+            lastname,
+            email,
+            password
+        })
+        res.status(200).json({
+            success: true,
+            data: user
+        })
     }catch(err){
-        console.log(err);
-        res.status(400).json({message: "Server error"})
+        res.status(400).json({
+            success: false,
+            message: err.message
+        })
     }
 })
 
@@ -78,7 +57,7 @@ exports.loginUser = asyncHandler(async(req, res) => {
 
 
 exports.getMe = async(req, res) => {
-    const {_id, username, email, image} = await User.findById(req.user._id)
+    const {_id, name, email, image} = await User.findById(req.user._id)
 
     res.status(200).json({
         success: true,

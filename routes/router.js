@@ -5,5 +5,4 @@ const api = '/api/mimir/'
 router.use(`${api}admin`, require('./admin/AdmineRoute'))
 router.use(`${api}user`, require('./user/UserRoutes'))
 router.use(`${api}book`, require('./book/BooksRoute'))
-
 module.exports = router
