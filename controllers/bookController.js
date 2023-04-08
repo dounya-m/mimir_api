@@ -1,3 +1,4 @@
+const { log } = require('firebase-functions/logger')
 const Book = require('../models/book')
 
 exports.getBooks = async(req, res) => {
@@ -33,17 +34,27 @@ exports.addBook = async(req, res) =>{
 
 exports.getTypes = async(req, res) => {
     const types = await Book.find().distinct('type')
-    const singleType = Array.from(new Set(types))
-    res.status(200).json(types)
+    const singleType = Array.from(new Set(types)).sort()
+    res.status(200).json(singleType)
 }
 
 exports.getYears = async (req, res) => {
-    try {
-      const years = await Book.find().distinct('year')
-      const yearMap = years.map(year => year.split(' ', 3)[2])
-      const singleYear = Array.from(new Set(yearMap)).sort()
-      res.status(200).json(singleYear)
+try {
+        const years = await Book.find().distinct('year')
+        const yearMap = years.map(year => year.split(' ', 3)[2])
+        const singleYear = Array.from(new Set(yearMap)).sort()
+        res.status(200).json(singleYear)
     } catch (err) {
-      res.status(500).json({ message: err.message })
+        res.status(500).json({ message: err.message })
     }
-  }  
+}  
+
+exports.SingleBook = async (req, res) => {
+    try {
+        const book = await Book.findById(req.params.id)
+        res.status(200).json(book)
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+}
+
