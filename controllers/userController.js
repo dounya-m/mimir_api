@@ -28,6 +28,10 @@ exports.createUser =  asyncHandler( async(req, res) => {
             email,
             password
         })
+        //hash password
+        const salt = await bcrypt.genSalt(10)
+        user.password = await bcrypt.hash(password, salt)
+        await user.save()
         res.status(200).json({
             success: true,
             data: user
@@ -42,8 +46,10 @@ exports.createUser =  asyncHandler( async(req, res) => {
 
 exports.loginUser = asyncHandler(async(req, res) => {
     const {email, password} = req.body
-    const user = await User.findOne({email})
 
+
+
+    const user = await User.findOne({email})
     if(user && (await bcrypt.compare(password, user.password))){
         res.status(200).json({
             success: true,
@@ -53,6 +59,20 @@ exports.loginUser = asyncHandler(async(req, res) => {
     }else{
         res.status(400).json({message: 'Invalid email or password'})
     }
+})
+
+exports.getOneuser = asyncHandler(async(req, res) => {
+
+    const user = await User.findById(req.params.id)
+    if(user){
+        res.status(200).json({
+            success: true,
+            data: user
+        })
+    }else{
+        res.status(400).json({message: 'User not found'})
+    }
+
 })
 
 

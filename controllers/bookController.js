@@ -1,4 +1,3 @@
-const { log } = require('firebase-functions/logger')
 const Book = require('../models/book')
 
 exports.getBooks = async(req, res) => {
